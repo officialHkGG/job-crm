@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 
 type Job = {
@@ -27,8 +27,10 @@ type Job = {
 export default function JobDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
+
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +39,7 @@ export default function JobDetailPage({
       const { data, error } = await supabase
         .from("jobs")
         .select("*")
-        .eq("id", params.id)
+        .eq("id", id)
         .single();
 
       if (error) {
@@ -50,7 +52,7 @@ export default function JobDetailPage({
     }
 
     fetchJob();
-  }, [params.id]);
+  }, [id]);
 
   if (loading) {
     return <p className="text-black">Loading job...</p>;
@@ -69,13 +71,9 @@ export default function JobDetailPage({
       <div className="bg-white border rounded-xl p-6 mt-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-black">
-              {job.title}
-            </h1>
+            <h1 className="text-3xl font-bold text-black">{job.title}</h1>
 
-            <p className="text-xl text-gray-700 mt-2">
-              {job.company}
-            </p>
+            <p className="text-xl text-gray-700 mt-2">{job.company}</p>
           </div>
 
           {job.favorite && <span className="text-3xl">⭐</span>}
@@ -105,9 +103,7 @@ export default function JobDetailPage({
         )}
 
         <div className="mt-8">
-          <h2 className="text-xl font-semibold text-black mb-2">
-            Notes
-          </h2>
+          <h2 className="text-xl font-semibold text-black mb-2">Notes</h2>
 
           <p className="text-gray-700 whitespace-pre-wrap">
             {job.notes || "No notes yet."}
@@ -128,9 +124,7 @@ function Detail({
   return (
     <div className="border rounded-lg p-4 bg-gray-50">
       <p className="text-sm text-gray-500">{label}</p>
-      <p className="font-medium text-black mt-1">
-        {value || "—"}
-      </p>
+      <p className="font-medium text-black mt-1">{value || "—"}</p>
     </div>
   );
 }
