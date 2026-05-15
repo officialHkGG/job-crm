@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabase";
 
 type Job = {
   id: string;
+  user_id: string;
   company: string;
   title: string;
   status: string;
@@ -59,6 +60,7 @@ export default function JobsPage() {
         .order("created_at", { ascending: false });
 
       if (error) {
+        alert(error.message);
         console.error(error);
       } else {
         setJobs(data || []);
@@ -97,9 +99,20 @@ export default function JobsPage() {
   }
 
   async function saveJob() {
-    if (!company || !title) return;
+    if (!company || !title) {
+      alert("Company and job title are required.");
+      return;
+    }
+
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !userData.user) {
+      alert("You must be logged in to save jobs.");
+      return;
+    }
 
     const jobData = {
+      user_id: userData.user.id,
       company,
       title,
       link,
@@ -124,6 +137,7 @@ export default function JobsPage() {
         .single();
 
       if (error) {
+        alert(error.message);
         console.error(error);
         return;
       }
@@ -144,6 +158,7 @@ export default function JobsPage() {
       .single();
 
     if (error) {
+      alert(error.message);
       console.error(error);
       return;
     }
@@ -156,6 +171,7 @@ export default function JobsPage() {
     const { error } = await supabase.from("jobs").delete().eq("id", id);
 
     if (error) {
+      alert(error.message);
       console.error(error);
       return;
     }
@@ -187,6 +203,7 @@ export default function JobsPage() {
       .eq("id", id);
 
     if (error) {
+      alert(error.message);
       console.error(error);
       return;
     }
@@ -205,6 +222,7 @@ export default function JobsPage() {
       .eq("id", id);
 
     if (error) {
+      alert(error.message);
       console.error(error);
       return;
     }
@@ -308,29 +326,87 @@ export default function JobsPage() {
         </h2>
 
         <div className="grid gap-4">
-          <input className="border rounded-lg p-3 text-black bg-white" placeholder="Company" value={company} onChange={(e) => setCompany(e.target.value)} />
-          <input className="border rounded-lg p-3 text-black bg-white" placeholder="Job title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <input className="border rounded-lg p-3 text-black bg-white" placeholder="Job link" value={link} onChange={(e) => setLink(e.target.value)} />
-          <input className="border rounded-lg p-3 text-black bg-white" placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} />
-          <input className="border rounded-lg p-3 text-black bg-white" placeholder="Salary" value={salary} onChange={(e) => setSalary(e.target.value)} />
-          <input className="border rounded-lg p-3 text-black bg-white" placeholder="Contact / recruiter" value={contact} onChange={(e) => setContact(e.target.value)} />
+          <input
+            className="border rounded-lg p-3 text-black bg-white"
+            placeholder="Company"
+            value={company}
+            onChange={(e) => setCompany(e.target.value)}
+          />
+
+          <input
+            className="border rounded-lg p-3 text-black bg-white"
+            placeholder="Job title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+
+          <input
+            className="border rounded-lg p-3 text-black bg-white"
+            placeholder="Job link"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+          />
+
+          <input
+            className="border rounded-lg p-3 text-black bg-white"
+            placeholder="Location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+          />
+
+          <input
+            className="border rounded-lg p-3 text-black bg-white"
+            placeholder="Salary"
+            value={salary}
+            onChange={(e) => setSalary(e.target.value)}
+          />
+
+          <input
+            className="border rounded-lg p-3 text-black bg-white"
+            placeholder="Contact / recruiter"
+            value={contact}
+            onChange={(e) => setContact(e.target.value)}
+          />
 
           <label className="text-sm text-gray-700">Applied date</label>
-          <input type="date" className="border rounded-lg p-3 text-black bg-white" value={appliedDate} onChange={(e) => setAppliedDate(e.target.value)} />
+          <input
+            type="date"
+            className="border rounded-lg p-3 text-black bg-white"
+            value={appliedDate}
+            onChange={(e) => setAppliedDate(e.target.value)}
+          />
 
           <label className="text-sm text-gray-700">Interview date</label>
-          <input type="date" className="border rounded-lg p-3 text-black bg-white" value={interviewDate} onChange={(e) => setInterviewDate(e.target.value)} />
+          <input
+            type="date"
+            className="border rounded-lg p-3 text-black bg-white"
+            value={interviewDate}
+            onChange={(e) => setInterviewDate(e.target.value)}
+          />
 
           <label className="text-sm text-gray-700">Follow-up date</label>
-          <input type="date" className="border rounded-lg p-3 text-black bg-white" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)} />
+          <input
+            type="date"
+            className="border rounded-lg p-3 text-black bg-white"
+            value={followUpDate}
+            onChange={(e) => setFollowUpDate(e.target.value)}
+          />
 
-          <select className="border rounded-lg p-3 text-black bg-white" value={priority} onChange={(e) => setPriority(e.target.value)}>
+          <select
+            className="border rounded-lg p-3 text-black bg-white"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+          >
             <option>Low</option>
             <option>Medium</option>
             <option>High</option>
           </select>
 
-          <select className="border rounded-lg p-3 text-black bg-white" value={companyType} onChange={(e) => setCompanyType(e.target.value)}>
+          <select
+            className="border rounded-lg p-3 text-black bg-white"
+            value={companyType}
+            onChange={(e) => setCompanyType(e.target.value)}
+          >
             <option>Startup</option>
             <option>Scaleup</option>
             <option>Enterprise</option>
@@ -338,7 +414,11 @@ export default function JobsPage() {
             <option>Consulting</option>
           </select>
 
-          <select className="border rounded-lg p-3 text-black bg-white" value={source} onChange={(e) => setSource(e.target.value)}>
+          <select
+            className="border rounded-lg p-3 text-black bg-white"
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+          >
             <option>LinkedIn</option>
             <option>Indeed</option>
             <option>Arbetsförmedlingen</option>
@@ -347,15 +427,26 @@ export default function JobsPage() {
             <option>Other</option>
           </select>
 
-          <textarea className="border rounded-lg p-3 text-black bg-white" placeholder="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+          <textarea
+            className="border rounded-lg p-3 text-black bg-white"
+            placeholder="Notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
 
           <div className="flex gap-3">
-            <button onClick={saveJob} className="bg-black text-white px-4 py-2 rounded-lg">
+            <button
+              onClick={saveJob}
+              className="bg-black text-white px-4 py-2 rounded-lg"
+            >
               {editingJobId ? "Update Job" : "Save Job"}
             </button>
 
             {editingJobId && (
-              <button onClick={resetForm} className="border px-4 py-2 rounded-lg text-black">
+              <button
+                onClick={resetForm}
+                className="border px-4 py-2 rounded-lg text-black"
+              >
                 Cancel
               </button>
             )}
@@ -364,9 +455,18 @@ export default function JobsPage() {
       </div>
 
       <div className="grid md:grid-cols-7 gap-4 mb-6">
-        <input className="border rounded-lg p-3 text-black bg-white" placeholder="Search jobs..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input
+          className="border rounded-lg p-3 text-black bg-white"
+          placeholder="Search jobs..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-        <select className="border rounded-lg p-3 text-black bg-white" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+        <select
+          className="border rounded-lg p-3 text-black bg-white"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
           <option>All</option>
           <option>Saved</option>
           <option>Applied</option>
@@ -375,14 +475,22 @@ export default function JobsPage() {
           <option>Rejected</option>
         </select>
 
-        <select className="border rounded-lg p-3 text-black bg-white" value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
+        <select
+          className="border rounded-lg p-3 text-black bg-white"
+          value={priorityFilter}
+          onChange={(e) => setPriorityFilter(e.target.value)}
+        >
           <option>All</option>
           <option>Low</option>
           <option>Medium</option>
           <option>High</option>
         </select>
 
-        <select className="border rounded-lg p-3 text-black bg-white" value={companyTypeFilter} onChange={(e) => setCompanyTypeFilter(e.target.value)}>
+        <select
+          className="border rounded-lg p-3 text-black bg-white"
+          value={companyTypeFilter}
+          onChange={(e) => setCompanyTypeFilter(e.target.value)}
+        >
           <option>All</option>
           <option>Startup</option>
           <option>Scaleup</option>
@@ -391,7 +499,11 @@ export default function JobsPage() {
           <option>Consulting</option>
         </select>
 
-        <select className="border rounded-lg p-3 text-black bg-white" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}>
+        <select
+          className="border rounded-lg p-3 text-black bg-white"
+          value={sourceFilter}
+          onChange={(e) => setSourceFilter(e.target.value)}
+        >
           <option>All</option>
           <option>LinkedIn</option>
           <option>Indeed</option>
@@ -401,7 +513,11 @@ export default function JobsPage() {
           <option>Other</option>
         </select>
 
-        <select className="border rounded-lg p-3 text-black bg-white" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+        <select
+          className="border rounded-lg p-3 text-black bg-white"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+        >
           <option>Newest</option>
           <option>Oldest</option>
           <option>Applied Date</option>
@@ -410,7 +526,10 @@ export default function JobsPage() {
           <option>Priority</option>
         </select>
 
-        <button onClick={resetFilters} className="border rounded-lg p-3 text-black bg-white">
+        <button
+          onClick={resetFilters}
+          className="border rounded-lg p-3 text-black bg-white"
+        >
           Reset Filters
         </button>
       </div>
@@ -428,7 +547,6 @@ export default function JobsPage() {
         <div className="grid gap-4">
           {filteredJobs.map((job) => (
             <JobCard
-            
               key={job.id}
               id={job.id}
               company={job.company}
